@@ -1,5 +1,5 @@
 
-import { type Request, type Response } from 'express';
+import express from 'express';
 import { Motif } from '../models/Motif.js';
 
 /**
@@ -9,7 +9,7 @@ export class MotifController {
   /**
    * Récupère tous les motifs
    */
-  async getAllMotifs(req: Request, res: Response): Promise<void> {
+  async getAllMotifs(req: express.Request, res: express.Response): Promise<void> {
     try {
       const motifs = await Motif.find().sort({ libelle: 1 });
 
@@ -30,7 +30,7 @@ export class MotifController {
   /**
    * Récupère un motif par son ID
    */
-  async getMotifById(req: Request, res: Response): Promise<void> {
+  async getMotifById(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const motif = await Motif.findById(id);
@@ -59,7 +59,7 @@ export class MotifController {
   /**
    * Crée un nouveau motif
    */
-  async createMotif(req: Request, res: Response): Promise<void> {
+  async createMotif(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { libelle } = req.body;
 
@@ -93,7 +93,7 @@ export class MotifController {
   /**
    * Met à jour un motif
    */
-  async updateMotif(req: Request, res: Response): Promise<void> {
+  async updateMotif(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const { libelle } = req.body;
@@ -143,7 +143,7 @@ export class MotifController {
   /**
    * Supprime un motif
    */
-  async deleteMotif(req: Request, res: Response): Promise<void> {
+  async deleteMotif(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const motif = await Motif.findByIdAndDelete(id);
@@ -173,7 +173,7 @@ export class MotifController {
   /**
    * Recherche des motifs par libellé
    */
-  async searchMotifs(req: Request, res: Response): Promise<void> {
+  async searchMotifs(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { q } = req.query;
 

@@ -28,7 +28,7 @@ router.get('/ville/:ville', (req, res) => praticienController.getPraticiensByVil
 router.get('/:id', getPraticienByIdValidation, validate, (req, res) => praticienController.getPraticienById(req, res));
 
 // POST /api/praticiens - Crée un nouveau praticien
-router.post('/', createPraticienValidation, validate, (req, res) => praticienController.createPraticien(req, res));
+ router.post('/', (req, res) => praticienController.createPraticien(req, res));
 
 // PUT /api/praticiens/:id - Met à jour un praticien
 router.put('/:id', updatePraticienValidation, validate, (req, res) => praticienController.updatePraticien(req, res));

@@ -1,4 +1,4 @@
-import express, { type Application, type Request, type Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Database } from './config/database.js';
@@ -19,7 +19,7 @@ dotenv.config();
  * Gère la configuration et le démarrage du serveur Express
  */
 class App {
-  public app: Application;
+  public app: express.Application;
   private port: number;
   private database: Database;
 
@@ -61,7 +61,7 @@ class App {
    */
   private initializeRoutes(): void {
     // Route de test
-    this.app.get('/', (req: Request, res: Response) => {
+    this.app.get('/', (req: express.Request, res: express.Response) => {
       res.json({
         message: 'API REST Express.js + TypeScript + MongoDB',
         version: '1.0.0',
@@ -78,7 +78,7 @@ class App {
 
 
     // Route de santé pour vérifier que l'API fonctionne
-    this.app.get('/health', (req: Request, res: Response) => {
+    this.app.get('/health', (req: express.Request, res: express.Response) => {
       res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),

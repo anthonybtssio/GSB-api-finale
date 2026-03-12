@@ -1,4 +1,4 @@
-import { type Request, type Response } from 'express';
+import express from 'express';
 import { Visite } from '../models/Visite.js';
 import { Visiteur } from '../models/Visiteur.js';
 import { Praticien } from '../models/Praticien.js';
@@ -11,7 +11,7 @@ export class VisiteController {
   /**
    * Récupère toutes les visites
    */
-  async getAllVisites(req: Request, res: Response): Promise<void> {
+  async getAllVisites(req: express.Request, res: express.Response): Promise<void> {
     try {
       const visites = await Visite.find()
         .populate('visiteur', 'nom prenom email')
@@ -36,7 +36,7 @@ export class VisiteController {
   /**
    * Récupère une visite par son ID
    */
-  async getVisiteById(req: Request, res: Response): Promise<void> {
+  async getVisiteById(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const visite = await Visite.findById(id)
@@ -68,7 +68,7 @@ export class VisiteController {
   /**
    * Récupère les visites d'un visiteur
    */
-  async getVisitesByVisiteur(req: Request, res: Response): Promise<void> {
+  async getVisitesByVisiteur(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId } = req.params;
 
@@ -95,7 +95,7 @@ export class VisiteController {
   /**
    * Récupère les visites d'un praticien
    */
-  async getVisitesByPraticien(req: Request, res: Response): Promise<void> {
+  async getVisitesByPraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { praticienId } = req.params;
 
@@ -122,7 +122,7 @@ export class VisiteController {
   /**
    * Récupère les visites par motif
    */
-  async getVisitesByMotif(req: Request, res: Response): Promise<void> {
+  async getVisitesByMotif(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { motifId } = req.params;
 
@@ -149,7 +149,7 @@ export class VisiteController {
   /**
    * Récupère les visites dans une période donnée
    */
-  async getVisitesByDateRange(req: Request, res: Response): Promise<void> {
+  async getVisitesByDateRange(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { startDate, endDate } = req.query;
 
@@ -189,7 +189,7 @@ export class VisiteController {
   /**
    * Crée une nouvelle visite
    */
-  async createVisite(req: Request, res: Response): Promise<void> {
+  async createVisite(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { date_visite, commentaire, visiteur, praticien, motif } = req.body;
 
@@ -255,7 +255,7 @@ export class VisiteController {
   /**
    * Met à jour une visite
    */
-  async updateVisite(req: Request, res: Response): Promise<void> {
+  async updateVisite(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const { date_visite, commentaire, visiteur, praticien, motif } = req.body;
@@ -328,7 +328,7 @@ export class VisiteController {
   /**
    * Supprime une visite
    */
-  async deleteVisite(req: Request, res: Response): Promise<void> {
+  async deleteVisite(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const visite = await Visite.findByIdAndDelete(id);
@@ -358,7 +358,7 @@ export class VisiteController {
   /**
    * Récupère les statistiques des visites
    */
-  async getVisitesStats(req: Request, res: Response): Promise<void> {
+  async getVisitesStats(req: express.Request, res: express.Response): Promise<void> {
     try {
       const totalVisites = await Visite.countDocuments();
       const visitesParMotif = await Visite.aggregate([

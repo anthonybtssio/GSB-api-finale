@@ -1,4 +1,4 @@
-import { type Request, type Response } from 'express';
+import express from 'express';
 import { Praticien } from '../models/Praticien.js';
 
 /**
@@ -8,7 +8,7 @@ export class PraticienController {
   /**
    * Récupère tous les praticiens
    */
-  async getAllPraticiens(req: Request, res: Response): Promise<void> {
+  async getAllPraticiens(req: express.Request, res: express.Response): Promise<void> {
     try {
       const praticiens = await Praticien.find()
         .populate('visites')
@@ -31,7 +31,7 @@ export class PraticienController {
   /**
    * Récupère un praticien par son ID
    */
-  async getPraticienById(req: Request, res: Response): Promise<void> {
+  async getPraticienById(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const praticien = await Praticien.findById(id).populate('visites');
@@ -60,7 +60,7 @@ export class PraticienController {
   /**
    * Récupère les praticiens par ville
    */
-  async getPraticiensByVille(req: Request, res: Response): Promise<void> {
+  async getPraticiensByVille(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { ville } = req.params;
 
@@ -85,7 +85,7 @@ export class PraticienController {
   /**
    * Crée un nouveau praticien
    */
-  async createPraticien(req: Request, res: Response): Promise<void> {
+  async createPraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { nom, prenom, tel, email, rue, code_postal, ville } = req.body;
 
@@ -126,7 +126,7 @@ export class PraticienController {
   /**
    * Met à jour un praticien
    */
-  async updatePraticien(req: Request, res: Response): Promise<void> {
+  async updatePraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const { nom, prenom, tel, email, rue, code_postal, ville } = req.body;
@@ -177,7 +177,7 @@ export class PraticienController {
   /**
    * Supprime un praticien
    */
-  async deletePraticien(req: Request, res: Response): Promise<void> {
+  async deletePraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const praticien = await Praticien.findByIdAndDelete(id);
@@ -207,7 +207,7 @@ export class PraticienController {
   /**
    * Recherche des praticiens par nom, prénom, email ou ville
    */
-  async searchPraticiens(req: Request, res: Response): Promise<void> {
+  async searchPraticiens(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { q } = req.query;
 

@@ -1,4 +1,4 @@
-import { type Request, type Response } from 'express';
+import express from 'express';
 import { Visiteur } from '../models/Visiteur.js';
 import { VisiteurService } from '../services/visiteur.service.js';
 
@@ -15,7 +15,7 @@ export class VisiteurController {
    * Récupère tous les visiteurs
    * Sécurité: Retourne uniquement _id, nom, prénom, email, tel
    */
-  async getAllVisiteurs(req: Request, res: Response): Promise<void> {
+  async getAllVisiteurs(req: express.Request, res: express.Response): Promise<void> {
     try {
       const visiteurs = await Visiteur.find()
         .select('-_id nom prenom email tel')
@@ -39,7 +39,7 @@ export class VisiteurController {
    * Récupère un visiteur par son ID
    * Sécurité: Retourne uniquement _id, nom, prénom, email, tel
    */
-  async getVisiteurById(req: Request, res: Response): Promise<void> {
+  async getVisiteurById(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const visiteur = await Visiteur.findById(id)
@@ -69,9 +69,11 @@ export class VisiteurController {
   /**
    * Crée un nouveau visiteur
    */
-  async createVisiteur(req: Request, res: Response): Promise<void> {
+  async createVisiteur(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { nom, prenom, tel, email, date_embauche } = req.body;
+
+      
 
       // Vérifier si l'email existe déjà
       const existingVisiteur = await Visiteur.findOne({ email });
@@ -108,7 +110,7 @@ export class VisiteurController {
   /**
    * Met à jour un visiteur
    */
-  async updateVisiteur(req: Request, res: Response): Promise<void> {
+  async updateVisiteur(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const { nom, prenom, tel, email, date_embauche } = req.body;
@@ -156,7 +158,7 @@ export class VisiteurController {
   /**
    * Supprime un visiteur
    */
-  async deleteVisiteur(req: Request, res: Response): Promise<void> {
+  async deleteVisiteur(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { id } = req.params;
       const visiteur = await Visiteur.findByIdAndDelete(id);
@@ -186,7 +188,7 @@ export class VisiteurController {
   /**
    * Recherche des visiteurs par nom ou prénom
    */
-  async searchVisiteurs(req: Request, res: Response): Promise<void> {
+  async searchVisiteurs(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { q } = req.query;
 
@@ -249,7 +251,7 @@ export class VisiteurController {
   /**
    * Récupère le portefeuille de praticiens d'un visiteur
    */
-  async getPortefeuillePraticiens(req: Request, res: Response): Promise<void> {
+  async getPortefeuillePraticiens(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId } = req.params;
 

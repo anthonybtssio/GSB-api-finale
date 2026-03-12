@@ -1,4 +1,4 @@
-import { type Request, type Response } from 'express';
+import express from 'express';
 import { PortefeuilleService } from '../services/portefeuille.service.js';
 
 /**
@@ -14,7 +14,7 @@ export class PortefeuilleController {
   /**
    * Ajoute un praticien au portefeuille d'un visiteur
    */
-  async addPraticien(req: Request, res: Response): Promise<void> {
+  async addPraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId, praticienId } = req.body;
       const { notes } = req.body;
@@ -50,7 +50,7 @@ export class PortefeuilleController {
   /**
    * Retire un praticien du portefeuille d'un visiteur (désactivation)
    */
-  async removePraticien(req: Request, res: Response): Promise<void> {
+  async removePraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId, praticienId } = req.params;
 
@@ -79,7 +79,7 @@ export class PortefeuilleController {
   /**
    * Supprime définitivement une relation du portefeuille
    */
-  async deleteRelation(req: Request, res: Response): Promise<void> {
+  async deleteRelation(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId, praticienId } = req.params;
 
@@ -108,7 +108,7 @@ export class PortefeuilleController {
   /**
    * Récupère le portefeuille d'un visiteur
    */
-  async getByVisiteur(req: Request, res: Response): Promise<void> {
+  async getByVisiteur(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId } = req.params;
 
@@ -139,7 +139,7 @@ export class PortefeuilleController {
   /**
    * Récupère tous les visiteurs associés à un praticien
    */
-  async getByPraticien(req: Request, res: Response): Promise<void> {
+  async getByPraticien(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { praticienId } = req.params;
 
@@ -170,7 +170,7 @@ export class PortefeuilleController {
   /**
    * Met à jour les notes d'une relation visiteur/praticien
    */
-  async updateNotes(req: Request, res: Response): Promise<void> {
+  async updateNotes(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId, praticienId } = req.params;
       const { notes } = req.body;
@@ -213,7 +213,7 @@ export class PortefeuilleController {
   /**
    * Récupère toutes les relations du portefeuille
    */
-  async getAll(req: Request, res: Response): Promise<void> {
+  async getAll(req: express.Request, res: express.Response): Promise<void> {
     try {
       const actifOnly = req.query.actif !== 'false';
 
