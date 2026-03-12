@@ -1,5 +1,6 @@
 jest.mock('../models/Visiteur', () => ({
   Visiteur: Object.assign(jest.fn(), {
+    findOne: jest.fn(),
     findById: jest.fn(),
     findByIdAndUpdate: jest.fn(),
   }),
@@ -18,6 +19,16 @@ import { Praticien } from '../models/Praticien';
 const VISITEUR_ID = '507f1f77bcf86cd799439011';
 const PRATICIEN_ID = '507f1f77bcf86cd799439022';
 const INVALID_ID = 'invalid-id';
+const EMAIL = 'jean.dupont@gsb.fr';
+
+const visiteurData = {
+  _id: VISITEUR_ID,
+  nom: 'Dupont',
+  prenom: 'Jean',
+  tel: '0612345678',
+  email: EMAIL,
+  date_embauche: new Date('2020-01-01'),
+};
 
 describe('VisiteurService', () => {
   let service: VisiteurService;
@@ -25,6 +36,120 @@ describe('VisiteurService', () => {
   beforeEach(() => {
     service = new VisiteurService();
     jest.clearAllMocks();
+  });
+
+  // =========================================================
+  describe('create', () => {
+    test('crée un visiteur avec succès (email libre)', async () => {
+      // ARRANGE
+      (Visiteur.findOne as jest.Mock).mockResolvedValue(null);
+
+      const mockInstance = {
+        save: jest.fn().mockResolvedValue(visiteurData),
+      };
+      (Visiteur as unknown as jest.Mock).mockImplementation(() => mockInstance);
+
+      // ACT
+      const result = await service.create(visiteurData);
+
+      // ASSERT
+      expect(result).toBeDefined();
+      expect(Visiteur.findOne).toHaveBeenCalledWith({ email: EMAIL });
+      expect(mockInstance.save).toHaveBeenCalled();
+    });
+
+    test('lance une erreur si l\'email existe déjà', async () => {
+      // ARRANGE
+      (Visiteur.findOne as jest.Mock).mockResolvedValue(visiteurData);
+
+      const mockInstance = { save: jest.fn() };
+      (Visiteur as unknown as jest.Mock).mockImplementation(() => mockInstance);
+
+      // ACT / ASSERT
+      await expect(service.create(visiteurData)).rejects.toThrow(
+        `Un visiteur avec l'email ${EMAIL} existe déjà`
+      );
+
+      expect(Visiteur.findOne).toHaveBeenCalledWith({ email: EMAIL });
+      expect(mockInstance.save).not.toHaveBeenCalled();
+    });
+
+    test('lance une erreur de validation Mongoose si les données sont invalides', async () => {
+      // ARRANGE
+      (Visiteur.findOne as jest.Mock).mockResolvedValue(null);
+
+      const validationError = Object.assign(new Error('Validation failed'), {
+        name: 'ValidationError',
+        errors: {
+          email: { message: 'Email invalide' },
+          nom: { message: 'Le nom est requis' },
+        },
+      });
+
+      const mockInstance = {
+        save: jest.fn().mockRejectedValue(validationError),
+      };
+      (Visiteur as unknown as jest.Mock).mockImplementation(() => mockInstance);
+
+      // ACT / ASSERT
+      await expect(
+        service.create({ email: 'mauvais-email', date_embauche: new Date() })
+      ).rejects.toThrow('Validation échouée:');
+
+      await expect(
+        service.create({ email: 'mauvais-email', date_embauche: new Date() })
+      ).rejects.toThrow(/Email invalide|Le nom est requis/);
+    });
+  });
+
+  // =========================================================
+  describe('isJunior', () => {
+    test('retourne true si embauché il y a moins d\'1 an', () => {
+      // ARRANGE — date d'embauche il y a 6 mois
+      const sixMoisAvant = new Date();
+      sixMoisAvant.setMonth(sixMoisAvant.getMonth() - 6);
+
+      // ACT / ASSERT
+      expect(service.isJunior(sixMoisAvant)).toBe(true);
+    });
+
+    test('retourne true si embauché exactement hier', () => {
+      // ARRANGE
+      const hier = new Date();
+      hier.setDate(hier.getDate() - 1);
+
+      // ACT / ASSERT
+      expect(service.isJunior(hier)).toBe(true);
+    });
+
+    test('retourne false si embauché il y a plus d\'1 an', () => {
+      // ARRANGE — date d'embauche il y a 2 ans
+      const deuxAnsAvant = new Date();
+      deuxAnsAvant.setFullYear(deuxAnsAvant.getFullYear() - 2);
+
+      // ACT / ASSERT
+      expect(service.isJunior(deuxAnsAvant)).toBe(false);
+    });
+
+    test('retourne false si embauché exactement il y a 1 an et 1 jour', () => {
+      // ARRANGE
+      const unAnEtUnJourAvant = new Date();
+      unAnEtUnJourAvant.setFullYear(unAnEtUnJourAvant.getFullYear() - 1);
+      unAnEtUnJourAvant.setDate(unAnEtUnJourAvant.getDate() - 1);
+
+      // ACT / ASSERT
+      expect(service.isJunior(unAnEtUnJourAvant)).toBe(false);
+    });
+
+    test('retourne true si date_embauche est undefined (junior par défaut)', () => {
+      // ACT / ASSERT
+      expect(service.isJunior(undefined)).toBe(true);
+    });
+
+    test('retourne true si date_embauche est null (junior par défaut)', () => {
+      // ACT / ASSERT
+      expect(service.isJunior(null)).toBe(true);
+    });
   });
 
   // =========================================================
