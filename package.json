@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --exec tsx src/server.ts",
+    "dev:tsnode": "nodemon --watch src --loader ts-node/esm src/server.ts",
     "build": "tsc",
     "test": "jest"
   },
@@ -33,13 +34,19 @@
     "helmet": "^8.1.0",
     "mongoose": "^9.0.0",
     "nodemon": "^3.1.11",
-    "tsx": "^4.20.6",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.5",
+    "@types/bcrypt": "^6.0.0",
+    "@types/dotenv": "^6.1.1",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcrypt": "^6.0.0",
     "jest": "^30.2.0",
-    "ts-jest": "^29.4.6"
+    "jsonwebtoken": "^9.0.3",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2"
   }
 }

@@ -47,7 +47,7 @@ export class Database {
 
 
       const encodedPassword = encodeURIComponent(dbPassword);
-      const mongoUri = `mongodb+srv://${dbUsername}:${encodedPassword}@cluster0.cbl1wuk.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`;
+      const mongoUri = `mongodb+srv://${dbUsername}:${encodedPassword}@cluster0.k9jw8lb.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`;
 
       console.log('Tentative de connexion avec:');
       console.log('- Username:', dbUsername);

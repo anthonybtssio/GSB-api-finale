@@ -298,7 +298,7 @@ export class VisiteurController {
   /**
    * Ajoute un praticien au portefeuille d'un visiteur
    */
-  async addPraticienToPortefeuille(req: Request, res: Response): Promise<void> {
+  async addPraticienToPortefeuille(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { visiteurId } = req.params;
       const { praticienId } = req.body;
