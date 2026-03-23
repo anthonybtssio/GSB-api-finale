@@ -1,42 +1,25 @@
 {
   "info": {
     "name": "GSB API - Tests JWT",
-    "description": "Collection pour tester l'authentification JWT et la sécurité des routes protégées par authMiddleware.",
+    "description": "Collection pour tester l'authentification JWT et la sécurité des routes.\n\n⚠️ Toutes les routes /api/* exigent désormais un token Bearer valide.\n- /api/auth/signup et /api/auth/login : pas de token, limité à 5 req/15min\n- Toutes les autres routes : token JWT obligatoire + limité à 100 req/15min\n\nWorkflow : exécuter d'abord '🔐 Authentification > Login' pour obtenir le token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:3000",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "visiteur_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "praticien_id",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "base_url",     "value": "http://localhost:3000", "type": "string" },
+    { "key": "token",        "value": "", "type": "string" },
+    { "key": "visiteur_id",  "value": "", "type": "string" },
+    { "key": "praticien_id", "value": "", "type": "string" }
   ],
   "item": [
     {
-      "name": "🔐 Authentification",
+      "name": "🔐 Authentification (pas de token requis)",
+      "description": "Routes publiques. Limitées à 5 requêtes par IP toutes les 15 minutes (anti brute-force).",
       "item": [
         {
           "name": "Signup - Créer un compte",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"email\": \"jean.dupont@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0612345678\",\n  \"date_embauche\": \"2023-01-15\"\n}"
@@ -46,23 +29,20 @@
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "signup"]
             },
-            "description": "Crée un nouveau compte visiteur. Retourne un token JWT valide 24h."
+            "description": "Crée un compte visiteur. Retourne un token JWT valide 24h. Pas de token requis."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test('Status 201 - Compte créé', () => pm.response.to.have.status(201));",
                   "if (pm.response.code === 201) {",
                   "    const json = pm.response.json();",
                   "    pm.collectionVariables.set('token', json.token);",
                   "    pm.collectionVariables.set('visiteur_id', json.visiteur.id);",
-                  "    console.log('✅ Token sauvegardé:', json.token);",
-                  "}",
-                  "pm.test('Status 201 - Compte créé', () => pm.response.to.have.status(201));",
-                  "pm.test('Token présent dans la réponse', () => {",
-                  "    pm.expect(pm.response.json()).to.have.property('token');",
-                  "});"
+                  "    console.log('✅ Token sauvegardé');",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
@@ -73,9 +53,7 @@
           "name": "Login - Se connecter (sauvegarde le token)",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"jean.dupont@gsb.fr\",\n  \"password\": \"Password123!\"\n}"
@@ -85,23 +63,21 @@
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "login"]
             },
-            "description": "Connexion avec email/password. Le token JWT est automatiquement sauvegardé dans la variable {{token}}."
+            "description": "Connexion. Le token JWT est automatiquement sauvegardé dans {{token}}."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test('Status 200 - Connexion réussie', () => pm.response.to.have.status(200));",
+                  "pm.test('Token présent', () => pm.expect(pm.response.json()).to.have.property('token'));",
                   "if (pm.response.code === 200) {",
                   "    const json = pm.response.json();",
                   "    pm.collectionVariables.set('token', json.token);",
                   "    pm.collectionVariables.set('visiteur_id', json.visiteur.id);",
-                  "    console.log('✅ Token sauvegardé:', json.token);",
-                  "}",
-                  "pm.test('Status 200 - Connexion réussie', () => pm.response.to.have.status(200));",
-                  "pm.test('Token présent dans la réponse', () => {",
-                  "    pm.expect(pm.response.json()).to.have.property('token');",
-                  "});"
+                  "    console.log('✅ Token sauvegardé:', json.token.substring(0, 30) + '...');",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
@@ -112,9 +88,7 @@
           "name": "Login - Mauvais mot de passe (401)",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"jean.dupont@gsb.fr\",\n  \"password\": \"mauvais_motdepasse\"\n}"
@@ -123,8 +97,7 @@
               "raw": "{{base_url}}/api/auth/login",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "login"]
-            },
-            "description": "Doit retourner 401 si le mot de passe est incorrect."
+            }
           },
           "event": [
             {
@@ -141,29 +114,27 @@
       ]
     },
     {
-      "name": "🛡️ Tests Middleware JWT",
-      "description": "Teste le comportement du authMiddleware sur les routes protégées.",
+      "name": "🛡️ Tests Middleware JWT (authMiddleware actif)",
+      "description": "Vérifie le comportement réel du authMiddleware sur les routes protégées.\nToutes les routes /api/* sauf /api/auth/* exigent un token Bearer valide.",
       "item": [
         {
-          "name": "✅ Avec token valide - GET visiteurs",
+          "name": "✅ Avec token valide - GET visiteurs (200)",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{base_url}}/api/visiteurs",
               "host": ["{{base_url}}"],
               "path": ["api", "visiteurs"]
             },
-            "description": "Requête avec un token valide. Doit retourner 200."
+            "description": "Token valide → 200 OK."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200 - Accès autorisé avec token valide', () => pm.response.to.have.status(200));"
+                  "pm.test('✅ 200 - Accès autorisé avec token valide', () => pm.response.to.have.status(200));"
                 ],
                 "type": "text/javascript"
               }
@@ -180,14 +151,14 @@
               "host": ["{{base_url}}"],
               "path": ["api", "visiteurs"]
             },
-            "description": "Requête SANS header Authorization. Doit retourner 401 si le middleware est appliqué."
+            "description": "Aucun header Authorization → 401 Unauthorized request."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 401 - Accès refusé sans token', () => pm.response.to.have.status(401));",
+                  "pm.test('❌ 401 - Accès refusé sans token', () => pm.response.to.have.status(401));",
                   "pm.test('Message Unauthorized', () => {",
                   "    pm.expect(pm.response.json().error).to.equal('Unauthorized request');",
                   "});"
@@ -198,25 +169,23 @@
           ]
         },
         {
-          "name": "❌ Token invalide/expiré - GET visiteurs (401)",
+          "name": "❌ Token invalide - GET visiteurs (401)",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer token.invalide.ici" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer token.invalide.ici" }],
             "url": {
               "raw": "{{base_url}}/api/visiteurs",
               "host": ["{{base_url}}"],
               "path": ["api", "visiteurs"]
             },
-            "description": "Requête avec un token forgé/invalide. Doit retourner 401."
+            "description": "Token forgé → 401 Unauthorized request."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 401 - Token invalide rejeté', () => pm.response.to.have.status(401));",
+                  "pm.test('❌ 401 - Token invalide rejeté', () => pm.response.to.have.status(401));",
                   "pm.test('Message Unauthorized', () => {",
                   "    pm.expect(pm.response.json().error).to.equal('Unauthorized request');",
                   "});"
@@ -227,25 +196,69 @@
           ]
         },
         {
-          "name": "❌ Format Bearer manquant - GET visiteurs (401)",
+          "name": "❌ Sans préfixe Bearer - GET visiteurs (401)",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "{{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "{{token}}" }],
             "url": {
               "raw": "{{base_url}}/api/visiteurs",
               "host": ["{{base_url}}"],
               "path": ["api", "visiteurs"]
             },
-            "description": "Token sans le préfixe 'Bearer '. Doit retourner 401 car authHeader.split(' ')[1] sera undefined."
+            "description": "Token sans le préfixe 'Bearer ' → authHeader.split(' ')[1] = undefined → 401."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 401 - Format Bearer requis', () => pm.response.to.have.status(401));"
+                  "pm.test('❌ 401 - Préfixe Bearer manquant', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Avec token valide - GET praticiens (200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/praticiens",
+              "host": ["{{base_url}}"],
+              "path": ["api", "praticiens"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✅ 200 - Praticiens accessibles avec token', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Sans token - GET praticiens (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/praticiens",
+              "host": ["{{base_url}}"],
+              "path": ["api", "praticiens"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('❌ 401 - Praticiens refusés sans token', () => pm.response.to.have.status(401));"
                 ],
                 "type": "text/javascript"
               }
@@ -255,43 +268,29 @@
       ]
     },
     {
-      "name": "👤 Visiteurs (avec JWT)",
+      "name": "👤 Visiteurs (token requis)",
       "item": [
         {
           "name": "GET tous les visiteurs",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visiteurs", "host": ["{{base_url}}"], "path": ["api", "visiteurs"] }
           }
         },
         {
           "name": "GET visiteur par ID",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs", "{{visiteur_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}", "host": ["{{base_url}}"], "path": ["api", "visiteurs", "{{visiteur_id}}"] }
           }
         },
         {
           "name": "GET recherche visiteurs",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
               "raw": "{{base_url}}/api/visiteurs/search?q=dupont",
               "host": ["{{base_url}}"],
@@ -312,11 +311,7 @@
               "mode": "raw",
               "raw": "{\n  \"nom\": \"Martin\",\n  \"prenom\": \"Sophie\",\n  \"email\": \"sophie.martin@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0698765432\",\n  \"adresse\": \"15 rue des Lilas\",\n  \"cp\": \"75010\",\n  \"ville\": \"Paris\",\n  \"dateEmbauche\": \"2024-03-01\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs"]
-            }
+            "url": { "raw": "{{base_url}}/api/visiteurs", "host": ["{{base_url}}"], "path": ["api", "visiteurs"] }
           }
         },
         {
@@ -331,86 +326,52 @@
               "mode": "raw",
               "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean-Pierre\",\n  \"tel\": \"0612000000\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs", "{{visiteur_id}}"]
-            }
+            "url": { "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}", "host": ["{{base_url}}"], "path": ["api", "visiteurs", "{{visiteur_id}}"] }
           }
         },
         {
           "name": "DELETE supprimer un visiteur",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs", "{{visiteur_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}", "host": ["{{base_url}}"], "path": ["api", "visiteurs", "{{visiteur_id}}"] }
           }
         },
         {
           "name": "GET portefeuille d'un visiteur",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs", "{{visiteur_id}}", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visiteurs/{{visiteur_id}}/portefeuille", "host": ["{{base_url}}"], "path": ["api", "visiteurs", "{{visiteur_id}}", "portefeuille"] }
           }
         }
       ]
     },
     {
-      "name": "🏥 Praticiens (avec JWT)",
+      "name": "🏥 Praticiens (token requis)",
       "item": [
         {
           "name": "GET tous les praticiens",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
           }
         },
         {
           "name": "GET praticien par ID",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/praticiens/{{praticien_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens", "{{praticien_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/praticiens/{{praticien_id}}", "host": ["{{base_url}}"], "path": ["api", "praticiens", "{{praticien_id}}"] }
           }
         },
         {
           "name": "GET praticiens par ville",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/praticiens/ville/Paris",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens", "ville", "Paris"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/praticiens/ville/Paris", "host": ["{{base_url}}"], "path": ["api", "praticiens", "ville", "Paris"] }
           }
         },
         {
@@ -423,13 +384,9 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nom\": \"Bernard\",\n  \"prenom\": \"Pierre\",\n  \"adresse\": \"12 rue de la Paix\",\n  \"cp\": \"75001\",\n  \"ville\": \"Paris\",\n  \"telephone\": \"0142000000\",\n  \"specialite\": \"Généraliste\"\n}"
+              "raw": "{\n  \"nom\": \"Bernard\",\n  \"prenom\": \"Pierre\",\n  \"tel\": \"0142000000\",\n  \"email\": \"pierre.bernard@cabinet.fr\",\n  \"rue\": \"12 rue de la Paix\",\n  \"code_postal\": \"75001\",\n  \"ville\": \"Paris\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            }
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
           },
           "event": [
             {
@@ -437,11 +394,8 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 201) {",
-                  "    const json = pm.response.json();",
-                  "    if (json.data && json.data._id) {",
-                  "        pm.collectionVariables.set('praticien_id', json.data._id);",
-                  "        console.log('✅ praticien_id sauvegardé:', json.data._id);",
-                  "    }",
+                  "    pm.collectionVariables.set('praticien_id', pm.response.json().data._id);",
+                  "    console.log('✅ praticien_id sauvegardé');",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -459,74 +413,46 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ville\": \"Lyon\",\n  \"telephone\": \"0456000000\"\n}"
+              "raw": "{\n  \"ville\": \"Lyon\",\n  \"tel\": \"0456000000\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/praticiens/{{praticien_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens", "{{praticien_id}}"]
-            }
+            "url": { "raw": "{{base_url}}/api/praticiens/{{praticien_id}}", "host": ["{{base_url}}"], "path": ["api", "praticiens", "{{praticien_id}}"] }
           }
         },
         {
           "name": "DELETE supprimer un praticien",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/praticiens/{{praticien_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens", "{{praticien_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/praticiens/{{praticien_id}}", "host": ["{{base_url}}"], "path": ["api", "praticiens", "{{praticien_id}}"] }
           }
         }
       ]
     },
     {
-      "name": "📋 Visites (avec JWT)",
+      "name": "📋 Visites (token requis)",
       "item": [
         {
           "name": "GET toutes les visites",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           }
         },
         {
           "name": "GET stats des visites",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visites/stats",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites", "stats"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visites/stats", "host": ["{{base_url}}"], "path": ["api", "visites", "stats"] }
           }
         },
         {
           "name": "GET visites par visiteur",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/visites/visiteur/{{visiteur_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites", "visiteur", "{{visiteur_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visites/visiteur/{{visiteur_id}}", "host": ["{{base_url}}"], "path": ["api", "visites", "visiteur", "{{visiteur_id}}"] }
           }
         },
         {
@@ -539,32 +465,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"visiteur\": \"{{visiteur_id}}\",\n  \"praticien\": \"{{praticien_id}}\",\n  \"date\": \"2026-03-25\",\n  \"motif\": \"Présentation nouveau médicament\",\n  \"compte_rendu\": \"Visite effectuée avec succès\"\n}"
+              "raw": "{\n  \"visiteurId\": \"{{visiteur_id}}\",\n  \"visiteur\": \"{{visiteur_id}}\",\n  \"praticienId\": \"{{praticien_id}}\",\n  \"praticien\": \"{{praticien_id}}\",\n  \"motifId\": \"<ID_MOTIF>\",\n  \"motif\": \"<ID_MOTIF>\",\n  \"dateVisite\": \"2026-03-20\",\n  \"date_visite\": \"2026-03-20\",\n  \"commentaire\": \"Visite de présentation.\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           }
         }
       ]
     },
     {
-      "name": "📂 Motifs (avec JWT)",
+      "name": "📂 Motifs (token requis)",
       "item": [
         {
           "name": "GET tous les motifs",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
           }
         },
         {
@@ -577,46 +493,30 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"libelle\": \"Présentation produit\",\n  \"description\": \"Présentation d'un nouveau médicament au praticien\"\n}"
+              "raw": "{\n  \"libelle\": \"Présentation produit\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            }
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
           }
         }
       ]
     },
     {
-      "name": "💼 Portefeuille (avec JWT)",
+      "name": "💼 Portefeuille (token requis)",
       "item": [
         {
           "name": "GET toutes les relations",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           }
         },
         {
           "name": "GET portefeuille par visiteur",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille/visiteur/{{visiteur_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille", "visiteur", "{{visiteur_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/portefeuille/visiteur/{{visiteur_id}}", "host": ["{{base_url}}"], "path": ["api", "portefeuille", "visiteur", "{{visiteur_id}}"] }
           }
         },
         {
@@ -631,11 +531,7 @@
               "mode": "raw",
               "raw": "{\n  \"visiteurId\": \"{{visiteur_id}}\",\n  \"praticienId\": \"{{praticien_id}}\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           }
         },
         {
@@ -650,39 +546,15 @@
               "mode": "raw",
               "raw": "{\n  \"notes\": \"Praticien réceptif aux nouvelles gammes\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille/{{visiteur_id}}/{{praticien_id}}/notes",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille", "{{visiteur_id}}", "{{praticien_id}}", "notes"]
-            }
-          }
-        },
-        {
-          "name": "PATCH désactiver un praticien",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille/{{visiteur_id}}/{{praticien_id}}/remove",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille", "{{visiteur_id}}", "{{praticien_id}}", "remove"]
-            }
+            "url": { "raw": "{{base_url}}/api/portefeuille/{{visiteur_id}}/{{praticien_id}}/notes", "host": ["{{base_url}}"], "path": ["api", "portefeuille", "{{visiteur_id}}", "{{praticien_id}}", "notes"] }
           }
         },
         {
           "name": "DELETE supprimer une relation",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille/{{visiteur_id}}/{{praticien_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille", "{{visiteur_id}}", "{{praticien_id}}"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/portefeuille/{{visiteur_id}}/{{praticien_id}}", "host": ["{{base_url}}"], "path": ["api", "portefeuille", "{{visiteur_id}}", "{{praticien_id}}"] }
           }
         }
       ]

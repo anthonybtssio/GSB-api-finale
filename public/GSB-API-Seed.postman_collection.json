@@ -1,224 +1,26 @@
 {
   "info": {
     "name": "GSB API - Seed BDD",
-    "description": "Collection de jeu de données : supprime toutes les données existantes puis recrée des motifs, visiteurs, praticiens, visites et portefeuilles. Exécuter les dossiers dans l'ordre 0 → 5.",
+    "description": "Collection de jeu de données : supprime toutes les données existantes puis recrée motifs, visiteurs, praticiens, visites et portefeuilles.\n\n⚠️ Toutes les routes /api/* exigent un token Bearer valide.\nExécuter les dossiers dans l'ordre 0 → 7.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url",     "value": "http://localhost:3000", "type": "string" },
-    { "key": "token",        "value": "", "type": "string" },
-    { "key": "visiteur1_id", "value": "", "type": "string" },
-    { "key": "visiteur2_id", "value": "", "type": "string" },
-    { "key": "visiteur3_id", "value": "", "type": "string" },
-    { "key": "praticien1_id","value": "", "type": "string" },
-    { "key": "praticien2_id","value": "", "type": "string" },
-    { "key": "praticien3_id","value": "", "type": "string" },
-    { "key": "motif1_id",    "value": "", "type": "string" },
-    { "key": "motif2_id",    "value": "", "type": "string" },
-    { "key": "motif3_id",    "value": "", "type": "string" }
+    { "key": "base_url",      "value": "http://localhost:3000", "type": "string" },
+    { "key": "token",         "value": "", "type": "string" },
+    { "key": "visiteur1_id",  "value": "", "type": "string" },
+    { "key": "visiteur2_id",  "value": "", "type": "string" },
+    { "key": "visiteur3_id",  "value": "", "type": "string" },
+    { "key": "praticien1_id", "value": "", "type": "string" },
+    { "key": "praticien2_id", "value": "", "type": "string" },
+    { "key": "praticien3_id", "value": "", "type": "string" },
+    { "key": "motif1_id",     "value": "", "type": "string" },
+    { "key": "motif2_id",     "value": "", "type": "string" },
+    { "key": "motif3_id",     "value": "", "type": "string" }
   ],
   "item": [
     {
-      "name": "🗑️ 0 - Nettoyage BDD",
-      "description": "Supprime toutes les données existantes. Exécuter chaque requête dans l'ordre.",
-      "item": [
-        {
-          "name": "Supprimer toutes les visites",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            },
-            "description": "Récupère toutes les visites puis les supprime une par une via le script de test."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (!json.data || json.data.length === 0) {",
-                  "    console.log('✅ Aucune visite à supprimer');",
-                  "    return;",
-                  "}",
-                  "json.data.forEach(item => {",
-                  "    pm.sendRequest({",
-                  "        url: pm.collectionVariables.get('base_url') + '/api/visites/' + item._id,",
-                  "        method: 'DELETE',",
-                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
-                  "    }, (err, res) => {",
-                  "        console.log('🗑️ Visite supprimée:', item._id, '| Status:', res.status);",
-                  "    });",
-                  "});",
-                  "pm.test('Visites récupérées pour suppression: ' + json.data.length, () => true);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Supprimer tous les portefeuilles",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            },
-            "description": "Récupère toutes les relations portefeuille puis les supprime."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (!json.data || json.data.length === 0) {",
-                  "    console.log('✅ Aucun portefeuille à supprimer');",
-                  "    return;",
-                  "}",
-                  "json.data.forEach(item => {",
-                  "    const visiteurId = item.visiteur?._id || item.visiteur;",
-                  "    const praticienId = item.praticien?._id || item.praticien;",
-                  "    pm.sendRequest({",
-                  "        url: pm.collectionVariables.get('base_url') + '/api/portefeuille/' + visiteurId + '/' + praticienId,",
-                  "        method: 'DELETE',",
-                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
-                  "    }, (err, res) => {",
-                  "        console.log('🗑️ Portefeuille supprimé:', visiteurId, '/', praticienId, '| Status:', res.status);",
-                  "    });",
-                  "});",
-                  "pm.test('Portefeuilles récupérés pour suppression: ' + json.data.length, () => true);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Supprimer tous les visiteurs",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{base_url}}/api/visiteurs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visiteurs"]
-            },
-            "description": "Récupère tous les visiteurs puis les supprime un par un."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (!json.data || json.data.length === 0) {",
-                  "    console.log('✅ Aucun visiteur à supprimer');",
-                  "    return;",
-                  "}",
-                  "json.data.forEach(item => {",
-                  "    pm.sendRequest({",
-                  "        url: pm.collectionVariables.get('base_url') + '/api/visiteurs/' + item._id,",
-                  "        method: 'DELETE',",
-                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
-                  "    }, (err, res) => {",
-                  "        console.log('🗑️ Visiteur supprimé:', item._id, '| Status:', res.status);",
-                  "    });",
-                  "});",
-                  "pm.test('Visiteurs récupérés pour suppression: ' + json.data.length, () => true);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Supprimer tous les praticiens",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            },
-            "description": "Récupère tous les praticiens puis les supprime un par un."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (!json.data || json.data.length === 0) {",
-                  "    console.log('✅ Aucun praticien à supprimer');",
-                  "    return;",
-                  "}",
-                  "json.data.forEach(item => {",
-                  "    pm.sendRequest({",
-                  "        url: pm.collectionVariables.get('base_url') + '/api/praticiens/' + item._id,",
-                  "        method: 'DELETE',",
-                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
-                  "    }, (err, res) => {",
-                  "        console.log('🗑️ Praticien supprimé:', item._id, '| Status:', res.status);",
-                  "    });",
-                  "});",
-                  "pm.test('Praticiens récupérés pour suppression: ' + json.data.length, () => true);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Supprimer tous les motifs",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            },
-            "description": "Récupère tous les motifs puis les supprime un par un."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (!json.data || json.data.length === 0) {",
-                  "    console.log('✅ Aucun motif à supprimer');",
-                  "    return;",
-                  "}",
-                  "json.data.forEach(item => {",
-                  "    pm.sendRequest({",
-                  "        url: pm.collectionVariables.get('base_url') + '/api/motifs/' + item._id,",
-                  "        method: 'DELETE',",
-                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
-                  "    }, (err, res) => {",
-                  "        console.log('🗑️ Motif supprimé:', item._id, '| Status:', res.status);",
-                  "    });",
-                  "});",
-                  "pm.test('Motifs récupérés pour suppression: ' + json.data.length, () => true);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "🔐 1 - Authentification (obtenir le token)",
-      "description": "Connexion pour obtenir un token JWT. Si aucun compte n'existe, utiliser Signup.",
+      "name": "🔐 0 - Authentification (obtenir le token)",
+      "description": "⚠️ À exécuter EN PREMIER. Le token est nécessaire pour toutes les étapes suivantes y compris le nettoyage.",
       "item": [
         {
           "name": "Signup admin (si première fois)",
@@ -234,7 +36,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "signup"]
             },
-            "description": "Crée un compte admin pour obtenir un token. Ignorer l'erreur 400 si le compte existe déjà."
+            "description": "Crée le compte admin. Ignorer l'erreur 400 si le compte existe déjà, utiliser Login à la place."
           },
           "event": [
             {
@@ -245,6 +47,8 @@
                   "    const json = pm.response.json();",
                   "    pm.collectionVariables.set('token', json.token);",
                   "    console.log('✅ Compte admin créé, token sauvegardé');",
+                  "} else {",
+                  "    console.log('ℹ️ Compte existant, utiliser Login ci-dessous');",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -286,36 +90,32 @@
       ]
     },
     {
-      "name": "📂 2 - Créer les Motifs",
-      "description": "Crée 3 motifs de visite. Les IDs sont sauvegardés automatiquement.",
+      "name": "🗑️ 1 - Nettoyage BDD",
+      "description": "Supprime toutes les données existantes. Requiert le token de l'étape 0.",
       "item": [
         {
-          "name": "Motif 1 - Présentation produit",
+          "name": "Supprimer toutes les visites",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"libelle\": \"Présentation nouveau produit\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            }
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] },
+            "description": "Récupère toutes les visites puis les supprime une par une."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Motif 1 créé', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.collectionVariables.set('motif1_id', json.data._id);",
-                  "console.log('✅ motif1_id:', json.data._id);"
+                  "if (!json.data || json.data.length === 0) { console.log('✅ Aucune visite'); return; }",
+                  "json.data.forEach(item => {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('base_url') + '/api/visites/' + item._id,",
+                  "        method: 'DELETE',",
+                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+                  "    }, (err, res) => console.log('🗑️ Visite supprimée:', item._id, '| Status:', res.status));",
+                  "});",
+                  "pm.test('Visites supprimées: ' + json.data.length, () => true);"
                 ],
                 "type": "text/javascript"
               }
@@ -323,32 +123,30 @@
           ]
         },
         {
-          "name": "Motif 2 - Suivi patient",
+          "name": "Supprimer tous les portefeuilles",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"libelle\": \"Suivi traitement patient\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            }
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] },
+            "description": "Récupère toutes les relations portefeuille puis les supprime."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Motif 2 créé', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.collectionVariables.set('motif2_id', json.data._id);",
-                  "console.log('✅ motif2_id:', json.data._id);"
+                  "if (!json.data || json.data.length === 0) { console.log('✅ Aucun portefeuille'); return; }",
+                  "json.data.forEach(item => {",
+                  "    const vId = item.visiteur?._id || item.visiteur;",
+                  "    const pId = item.praticien?._id || item.praticien;",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('base_url') + '/api/portefeuille/' + vId + '/' + pId,",
+                  "        method: 'DELETE',",
+                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+                  "    }, (err, res) => console.log('🗑️ Portefeuille supprimé:', vId, '/', pId, '| Status:', res.status));",
+                  "});",
+                  "pm.test('Portefeuilles supprimés: ' + json.data.length, () => true);"
                 ],
                 "type": "text/javascript"
               }
@@ -356,32 +154,86 @@
           ]
         },
         {
-          "name": "Motif 3 - Formation médicale",
+          "name": "Supprimer tous les visiteurs",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"libelle\": \"Formation médicale continue\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/motifs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "motifs"]
-            }
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/visiteurs", "host": ["{{base_url}}"], "path": ["api", "visiteurs"] },
+            "description": "Récupère tous les visiteurs puis les supprime un par un."
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Motif 3 créé', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.collectionVariables.set('motif3_id', json.data._id);",
-                  "console.log('✅ motif3_id:', json.data._id);"
+                  "if (!json.data || json.data.length === 0) { console.log('✅ Aucun visiteur'); return; }",
+                  "json.data.forEach(item => {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('base_url') + '/api/visiteurs/' + item._id,",
+                  "        method: 'DELETE',",
+                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+                  "    }, (err, res) => console.log('🗑️ Visiteur supprimé:', item._id, '| Status:', res.status));",
+                  "});",
+                  "pm.test('Visiteurs supprimés: ' + json.data.length, () => true);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Supprimer tous les praticiens",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] },
+            "description": "Récupère tous les praticiens puis les supprime un par un."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (!json.data || json.data.length === 0) { console.log('✅ Aucun praticien'); return; }",
+                  "json.data.forEach(item => {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('base_url') + '/api/praticiens/' + item._id,",
+                  "        method: 'DELETE',",
+                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+                  "    }, (err, res) => console.log('🗑️ Praticien supprimé:', item._id, '| Status:', res.status));",
+                  "});",
+                  "pm.test('Praticiens supprimés: ' + json.data.length, () => true);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Supprimer tous les motifs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] },
+            "description": "Récupère tous les motifs puis les supprime un par un."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (!json.data || json.data.length === 0) { console.log('✅ Aucun motif'); return; }",
+                  "json.data.forEach(item => {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('base_url') + '/api/motifs/' + item._id,",
+                  "        method: 'DELETE',",
+                  "        header: { 'Authorization': 'Bearer ' + pm.collectionVariables.get('token') }",
+                  "    }, (err, res) => console.log('🗑️ Motif supprimé:', item._id, '| Status:', res.status));",
+                  "});",
+                  "pm.test('Motifs supprimés: ' + json.data.length, () => true);"
                 ],
                 "type": "text/javascript"
               }
@@ -391,104 +243,89 @@
       ]
     },
     {
+      "name": "📂 2 - Créer les Motifs",
+      "description": "Crée 3 motifs. IDs sauvegardés automatiquement.",
+      "item": [
+        {
+          "name": "Motif 1 - Présentation nouveau produit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"libelle\": \"Présentation nouveau produit\"\n}" },
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Motif 1 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('motif1_id', pm.response.json().data._id);", "console.log('✅ motif1_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Motif 2 - Suivi traitement patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"libelle\": \"Suivi traitement patient\"\n}" },
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Motif 2 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('motif2_id', pm.response.json().data._id);", "console.log('✅ motif2_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Motif 3 - Formation médicale continue",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"libelle\": \"Formation médicale continue\"\n}" },
+            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Motif 3 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('motif3_id', pm.response.json().data._id);", "console.log('✅ motif3_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
       "name": "👤 3 - Créer les Visiteurs",
-      "description": "Crée 3 visiteurs via /api/auth/signup. Les IDs sont sauvegardés automatiquement.",
+      "description": "Crée 3 visiteurs via /api/auth/signup (pas de token requis). IDs sauvegardés automatiquement.",
       "item": [
         {
           "name": "Visiteur 1 - Dupont Jean",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"email\": \"jean.dupont@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0612345678\",\n  \"date_embauche\": \"2022-06-01\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/auth/signup",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "signup"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Dupont\",\n  \"prenom\": \"Jean\",\n  \"email\": \"jean.dupont@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0612345678\",\n  \"date_embauche\": \"2022-06-01\"\n}" },
+            "url": { "raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api", "auth", "signup"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visiteur 1 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('visiteur1_id', json.visiteur.id);",
-                  "console.log('✅ visiteur1_id:', json.visiteur.id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visiteur 1 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('visiteur1_id', pm.response.json().visiteur.id);", "console.log('✅ visiteur1_id:', pm.response.json().visiteur.id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visiteur 2 - Martin Sophie",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Martin\",\n  \"prenom\": \"Sophie\",\n  \"email\": \"sophie.martin@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0698765432\",\n  \"date_embauche\": \"2023-09-15\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/auth/signup",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "signup"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Martin\",\n  \"prenom\": \"Sophie\",\n  \"email\": \"sophie.martin@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0698765432\",\n  \"date_embauche\": \"2023-09-15\"\n}" },
+            "url": { "raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api", "auth", "signup"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visiteur 2 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('visiteur2_id', json.visiteur.id);",
-                  "console.log('✅ visiteur2_id:', json.visiteur.id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visiteur 2 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('visiteur2_id', pm.response.json().visiteur.id);", "console.log('✅ visiteur2_id:', pm.response.json().visiteur.id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visiteur 3 - Bernard Lucas",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Bernard\",\n  \"prenom\": \"Lucas\",\n  \"email\": \"lucas.bernard@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0677889900\",\n  \"date_embauche\": \"2021-03-10\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/auth/signup",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "signup"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Bernard\",\n  \"prenom\": \"Lucas\",\n  \"email\": \"lucas.bernard@gsb.fr\",\n  \"password\": \"Password123!\",\n  \"tel\": \"0677889900\",\n  \"date_embauche\": \"2021-03-10\"\n}" },
+            "url": { "raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api", "auth", "signup"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visiteur 3 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('visiteur3_id', json.visiteur.id);",
-                  "console.log('✅ visiteur3_id:', json.visiteur.id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visiteur 3 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('visiteur3_id', pm.response.json().visiteur.id);", "console.log('✅ visiteur3_id:', pm.response.json().visiteur.id);"], "type": "text/javascript" } }]
         }
       ]
     },
     {
       "name": "🏥 4 - Créer les Praticiens",
-      "description": "Crée 3 praticiens. Les IDs sont sauvegardés automatiquement. Note: la route POST /api/praticiens n'utilise pas de validator, les champs doivent correspondre au modèle (rue, code_postal, tel).",
+      "description": "Crée 3 praticiens. IDs sauvegardés automatiquement.",
       "item": [
         {
           "name": "Praticien 1 - Dr. Lefevre Paris",
@@ -498,30 +335,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Lefevre\",\n  \"prenom\": \"Pierre\",\n  \"tel\": \"0142001122\",\n  \"email\": \"pierre.lefevre@cabinet.fr\",\n  \"rue\": \"12 rue de Rivoli\",\n  \"code_postal\": \"75001\",\n  \"ville\": \"Paris\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Lefevre\",\n  \"prenom\": \"Pierre\",\n  \"tel\": \"0142001122\",\n  \"email\": \"pierre.lefevre@cabinet.fr\",\n  \"rue\": \"12 rue de Rivoli\",\n  \"code_postal\": \"75001\",\n  \"ville\": \"Paris\"\n}" },
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Praticien 1 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('praticien1_id', json.data._id);",
-                  "console.log('✅ praticien1_id:', json.data._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Praticien 1 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('praticien1_id', pm.response.json().data._id);", "console.log('✅ praticien1_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Praticien 2 - Dr. Moreau Lyon",
@@ -531,30 +348,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Moreau\",\n  \"prenom\": \"Claire\",\n  \"tel\": \"0456223344\",\n  \"email\": \"claire.moreau@cabinet.fr\",\n  \"rue\": \"8 place Bellecour\",\n  \"code_postal\": \"69002\",\n  \"ville\": \"Lyon\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Moreau\",\n  \"prenom\": \"Claire\",\n  \"tel\": \"0456223344\",\n  \"email\": \"claire.moreau@cabinet.fr\",\n  \"rue\": \"8 place Bellecour\",\n  \"code_postal\": \"69002\",\n  \"ville\": \"Lyon\"\n}" },
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Praticien 2 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('praticien2_id', json.data._id);",
-                  "console.log('✅ praticien2_id:', json.data._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Praticien 2 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('praticien2_id', pm.response.json().data._id);", "console.log('✅ praticien2_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Praticien 3 - Dr. Simon Marseille",
@@ -564,36 +361,16 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nom\": \"Simon\",\n  \"prenom\": \"Marc\",\n  \"tel\": \"0491445566\",\n  \"email\": \"marc.simon@cabinet.fr\",\n  \"rue\": \"25 avenue du Prado\",\n  \"code_postal\": \"13008\",\n  \"ville\": \"Marseille\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/praticiens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "praticiens"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"nom\": \"Simon\",\n  \"prenom\": \"Marc\",\n  \"tel\": \"0491445566\",\n  \"email\": \"marc.simon@cabinet.fr\",\n  \"rue\": \"25 avenue du Prado\",\n  \"code_postal\": \"13008\",\n  \"ville\": \"Marseille\"\n}" },
+            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Praticien 3 créé', () => pm.response.to.have.status(201));",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set('praticien3_id', json.data._id);",
-                  "console.log('✅ praticien3_id:', json.data._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Praticien 3 créé', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('praticien3_id', pm.response.json().data._id);", "console.log('✅ praticien3_id:', pm.response.json().data._id);"], "type": "text/javascript" } }]
         }
       ]
     },
     {
       "name": "📋 5 - Créer les Visites",
-      "description": "Crée 5 visites. Note: le validator attend visiteurId/praticienId/motifId/dateVisite, mais le controller lit visiteur/praticien/motif/date_visite — les deux jeux de noms sont envoyés.",
+      "description": "Crée 5 visites. Note: le validator attend visiteurId/praticienId/motifId/dateVisite, le controller lit visiteur/praticien/motif/date_visite — les deux jeux sont envoyés.",
       "item": [
         {
           "name": "Visite 1 - Dupont chez Lefevre (motif 1)",
@@ -603,28 +380,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"visiteur\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\",\n  \"praticien\": \"{{praticien1_id}}\",\n  \"motifId\": \"{{motif1_id}}\",\n  \"motif\": \"{{motif1_id}}\",\n  \"dateVisite\": \"2026-01-10\",\n  \"date_visite\": \"2026-01-10\",\n  \"commentaire\": \"Présentation du médicament CardioPlus au Dr. Lefevre. Bonne réceptivité.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"visiteur\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\",\n  \"praticien\": \"{{praticien1_id}}\",\n  \"motifId\": \"{{motif1_id}}\",\n  \"motif\": \"{{motif1_id}}\",\n  \"dateVisite\": \"2026-01-10\",\n  \"date_visite\": \"2026-01-10\",\n  \"commentaire\": \"Présentation du médicament CardioPlus au Dr. Lefevre. Bonne réceptivité.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visite 1 créée', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Visite 1:', pm.response.json().data?._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visite 1 créée', () => pm.response.to.have.status(201));", "console.log('✅ Visite 1:', pm.response.json().data?._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visite 2 - Dupont chez Moreau (motif 2)",
@@ -634,28 +393,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"visiteur\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\",\n  \"praticien\": \"{{praticien2_id}}\",\n  \"motifId\": \"{{motif2_id}}\",\n  \"motif\": \"{{motif2_id}}\",\n  \"dateVisite\": \"2026-01-20\",\n  \"date_visite\": \"2026-01-20\",\n  \"commentaire\": \"Suivi du traitement d'un patient commun. Dr. Moreau souhaite un rappel dans 3 mois.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"visiteur\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\",\n  \"praticien\": \"{{praticien2_id}}\",\n  \"motifId\": \"{{motif2_id}}\",\n  \"motif\": \"{{motif2_id}}\",\n  \"dateVisite\": \"2026-01-20\",\n  \"date_visite\": \"2026-01-20\",\n  \"commentaire\": \"Suivi du traitement. Dr. Moreau souhaite un rappel dans 3 mois.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visite 2 créée', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Visite 2:', pm.response.json().data?._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visite 2 créée', () => pm.response.to.have.status(201));", "console.log('✅ Visite 2:', pm.response.json().data?._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visite 3 - Martin chez Lefevre (motif 3)",
@@ -665,28 +406,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"visiteur\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\",\n  \"praticien\": \"{{praticien1_id}}\",\n  \"motifId\": \"{{motif3_id}}\",\n  \"motif\": \"{{motif3_id}}\",\n  \"dateVisite\": \"2026-02-05\",\n  \"date_visite\": \"2026-02-05\",\n  \"commentaire\": \"Formation sur les nouvelles recommandations HAS. Dr. Lefevre très intéressé.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"visiteur\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\",\n  \"praticien\": \"{{praticien1_id}}\",\n  \"motifId\": \"{{motif3_id}}\",\n  \"motif\": \"{{motif3_id}}\",\n  \"dateVisite\": \"2026-02-05\",\n  \"date_visite\": \"2026-02-05\",\n  \"commentaire\": \"Formation sur les nouvelles recommandations HAS.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visite 3 créée', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Visite 3:', pm.response.json().data?._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visite 3 créée', () => pm.response.to.have.status(201));", "console.log('✅ Visite 3:', pm.response.json().data?._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visite 4 - Martin chez Simon (motif 1)",
@@ -696,28 +419,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"visiteur\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien3_id}}\",\n  \"praticien\": \"{{praticien3_id}}\",\n  \"motifId\": \"{{motif1_id}}\",\n  \"motif\": \"{{motif1_id}}\",\n  \"dateVisite\": \"2026-02-18\",\n  \"date_visite\": \"2026-02-18\",\n  \"commentaire\": \"Présentation du nouveau générique DermoSoft. Dr. Simon demande des échantillons.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"visiteur\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien3_id}}\",\n  \"praticien\": \"{{praticien3_id}}\",\n  \"motifId\": \"{{motif1_id}}\",\n  \"motif\": \"{{motif1_id}}\",\n  \"dateVisite\": \"2026-02-18\",\n  \"date_visite\": \"2026-02-18\",\n  \"commentaire\": \"Présentation DermoSoft. Dr. Simon demande des échantillons.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visite 4 créée', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Visite 4:', pm.response.json().data?._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visite 4 créée', () => pm.response.to.have.status(201));", "console.log('✅ Visite 4:', pm.response.json().data?._id);"], "type": "text/javascript" } }]
         },
         {
           "name": "Visite 5 - Bernard chez Moreau (motif 2)",
@@ -727,28 +432,10 @@
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur3_id}}\",\n  \"visiteur\": \"{{visiteur3_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\",\n  \"praticien\": \"{{praticien2_id}}\",\n  \"motifId\": \"{{motif2_id}}\",\n  \"motif\": \"{{motif2_id}}\",\n  \"dateVisite\": \"2026-03-01\",\n  \"date_visite\": \"2026-03-01\",\n  \"commentaire\": \"Bilan de suivi trimestriel. Bonne évolution.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/visites",
-              "host": ["{{base_url}}"],
-              "path": ["api", "visites"]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur3_id}}\",\n  \"visiteur\": \"{{visiteur3_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\",\n  \"praticien\": \"{{praticien2_id}}\",\n  \"motifId\": \"{{motif2_id}}\",\n  \"motif\": \"{{motif2_id}}\",\n  \"dateVisite\": \"2026-03-01\",\n  \"date_visite\": \"2026-03-01\",\n  \"commentaire\": \"Bilan de suivi trimestriel. Bonne évolution.\"\n}" },
+            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Visite 5 créée', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Visite 5:', pm.response.json().data?._id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Visite 5 créée', () => pm.response.to.have.status(201));", "console.log('✅ Visite 5:', pm.response.json().data?._id);"], "type": "text/javascript" } }]
         }
       ]
     },
@@ -757,159 +444,54 @@
       "description": "Associe des praticiens au portefeuille de chaque visiteur.",
       "item": [
         {
-          "name": "Dupont → Praticien Lefevre",
+          "name": "Dupont → Lefevre",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Portefeuille Dupont/Lefevre créé', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Portefeuille 1 créé');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Portefeuille Dupont/Lefevre', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
         },
         {
-          "name": "Dupont → Praticien Moreau",
+          "name": "Dupont → Moreau",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur1_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Portefeuille Dupont/Moreau créé', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Portefeuille 2 créé');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Portefeuille Dupont/Moreau', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
         },
         {
-          "name": "Martin → Praticien Lefevre",
+          "name": "Martin → Lefevre",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien1_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Portefeuille Martin/Lefevre créé', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Portefeuille 3 créé');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Portefeuille Martin/Lefevre', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
         },
         {
-          "name": "Martin → Praticien Simon",
+          "name": "Martin → Simon",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien3_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur2_id}}\",\n  \"praticienId\": \"{{praticien3_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Portefeuille Martin/Simon créé', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Portefeuille 4 créé');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Portefeuille Martin/Simon', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
         },
         {
-          "name": "Bernard → Praticien Moreau",
+          "name": "Bernard → Moreau",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"visiteurId\": \"{{visiteur3_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/portefeuille",
-              "host": ["{{base_url}}"],
-              "path": ["api", "portefeuille"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"visiteurId\": \"{{visiteur3_id}}\",\n  \"praticienId\": \"{{praticien2_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/portefeuille", "host": ["{{base_url}}"], "path": ["api", "portefeuille"] }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Portefeuille Bernard/Moreau créé', () => pm.response.to.have.status(201));",
-                  "console.log('✅ Portefeuille 5 créé');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Portefeuille Bernard/Moreau', () => pm.response.to.have.status(201));"], "type": "text/javascript" } }]
         }
       ]
     },
@@ -918,48 +500,28 @@
       "description": "Vérifie que toutes les données ont bien été créées.",
       "item": [
         {
-          "name": "GET tous les motifs (doit en avoir 3)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] }
-          },
+          "name": "GET motifs (≥3)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/motifs", "host": ["{{base_url}}"], "path": ["api", "motifs"] } },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('3 motifs présents', () => pm.expect(pm.response.json().data.length).to.be.at.least(3));"], "type": "text/javascript" } }]
         },
         {
-          "name": "GET tous les visiteurs (doit en avoir 3)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{base_url}}/api/visiteurs", "host": ["{{base_url}}"], "path": ["api", "visiteurs"] }
-          },
+          "name": "GET visiteurs (≥3)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/visiteurs", "host": ["{{base_url}}"], "path": ["api", "visiteurs"] } },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('3 visiteurs présents', () => pm.expect(pm.response.json().data.length).to.be.at.least(3));"], "type": "text/javascript" } }]
         },
         {
-          "name": "GET tous les praticiens (doit en avoir 3)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] }
-          },
+          "name": "GET praticiens (≥3)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/praticiens", "host": ["{{base_url}}"], "path": ["api", "praticiens"] } },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('3 praticiens présents', () => pm.expect(pm.response.json().data.length).to.be.at.least(3));"], "type": "text/javascript" } }]
         },
         {
-          "name": "GET toutes les visites (doit en avoir 5)",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] }
-          },
+          "name": "GET visites (≥5)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/visites", "host": ["{{base_url}}"], "path": ["api", "visites"] } },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('5 visites présentes', () => pm.expect(pm.response.json().data.length).to.be.at.least(5));"], "type": "text/javascript" } }]
         },
         {
-          "name": "GET stats des visites",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{base_url}}/api/visites/stats", "host": ["{{base_url}}"], "path": ["api", "visites", "stats"] }
-          },
+          "name": "GET stats visites",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/visites/stats", "host": ["{{base_url}}"], "path": ["api", "visites", "stats"] } },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('Stats disponibles', () => pm.response.to.have.status(200));", "console.log('📊 Stats:', JSON.stringify(pm.response.json().data, null, 2));"], "type": "text/javascript" } }]
         }
       ]
