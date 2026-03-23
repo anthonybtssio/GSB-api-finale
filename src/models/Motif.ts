@@ -20,7 +20,6 @@ const motifSchema = new Schema<IMotif>(
   }
 );
 
-// Index
-motifSchema.index({ libelle: 1 });
+// Index (libelle déjà indexé via unique: true dans le schéma)
 
 export const Motif = mongoose.model<IMotif>('Motif', motifSchema);

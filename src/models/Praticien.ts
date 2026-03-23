@@ -67,8 +67,7 @@ praticienSchema.virtual('visites', {
   foreignField: 'praticien'
 });
 
-// Index
-praticienSchema.index({ email: 1 });
+// Index (email déjà indexé via unique: true dans le schéma)
 praticienSchema.index({ nom: 1, prenom: 1 });
 praticienSchema.index({ ville: 1 });
 

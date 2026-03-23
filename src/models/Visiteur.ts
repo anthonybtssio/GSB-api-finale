@@ -79,8 +79,7 @@ visiteurSchema.virtual('visites', {
   foreignField: 'visiteur'
 });
 
-// Index
-visiteurSchema.index({ email: 1 });
+// Index (email déjà indexé via unique: true dans le schéma)
 visiteurSchema.index({ nom: 1, prenom: 1 });
 
 export const Visiteur = mongoose.model<IVisiteur>('Visiteur', visiteurSchema);

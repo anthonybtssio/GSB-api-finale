@@ -1,6 +1,6 @@
-import { Response, NextFunction } from 'express';
+import type { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthenticatedRequest } from '../types/authenticatedRequest';
+import type { AuthenticatedRequest } from '../types/authenticatedRequest';
 
 interface DecodedToken {
   userId: string;
