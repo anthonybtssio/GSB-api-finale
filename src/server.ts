@@ -39,6 +39,10 @@ class App {
    * Configure les middlewares Express
    */
   private initializeMiddlewares(): void {
+    // Fait confiance aux en-têtes X-Forwarded-For envoyés par les proxies (ex: Codespaces, Heroku, Nginx)
+    // Nécessaire pour express-rate-limit pour identifier correctement les IPs des clients
+    this.app.set('trust proxy', 1);
+
     // Applique Helmet en premier pour sécuriser les en-têtes HTTP
     this.app.use(helmetMiddleware);
 

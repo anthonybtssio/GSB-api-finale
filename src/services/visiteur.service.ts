@@ -104,4 +104,25 @@ export class VisiteurService {
     // Retourner uniquement le tableau des praticiens
     return visiteur.portefeuillePraticiens as unknown as IPraticien[];
   }
+
+  /**
+   * Récupère un visiteur par son ID
+   * @param visiteurId - L'ID du visiteur
+   * @returns Le visiteur trouvé
+   */
+  public async getVisiteurById(visiteurId: string): Promise<IVisiteur> {
+    // Validation de l'ID
+    if (!Types.ObjectId.isValid(visiteurId)) {
+      throw new Error('ID visiteur invalide');
+    }
+
+    // Rechercher le visiteur
+    const visiteur = await Visiteur.findById(visiteurId);
+
+    if (!visiteur) {
+      throw new Error(`Visiteur avec l'ID ${visiteurId} introuvable`);
+    }
+
+    return visiteur;
+  }
 }

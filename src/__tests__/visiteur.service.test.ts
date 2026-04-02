@@ -278,4 +278,41 @@ describe('VisiteurService', () => {
       ).rejects.toThrow(`Visiteur avec l'ID ${VISITEUR_ID} introuvable`);
     });
   });
+
+  // =========================================================
+  // NOUVELLE PARTIE AJOUTÉE : getVisiteurById
+  // =========================================================
+  describe('getVisiteurById', () => {
+    test('Scénario 1 : Doit retourner le visiteur si l\'ID est valide et existe', async () => {
+      // ARRANGE
+      (Visiteur.findById as jest.Mock).mockResolvedValue(visiteurData);
+
+      // ACT
+      const result = await service.getVisiteurById(VISITEUR_ID);
+
+      // ASSERT
+      expect(result).toEqual(visiteurData);
+      expect(Visiteur.findById).toHaveBeenCalledWith(VISITEUR_ID);
+    });
+
+    test('Scénario 2 : Doit lever une erreur si le format de l\'ID est invalide', async () => {
+      // ACT / ASSERT
+      await expect(
+        service.getVisiteurById(INVALID_ID)
+      ).rejects.toThrow('ID visiteur invalide'); // Ou l'erreur exacte que tu as définie dans ton service
+
+      // Vérifie que la base de données n'est pas appelée
+      expect(Visiteur.findById).not.toHaveBeenCalled();
+    });
+
+    test('Scénario 3 : Doit lever une erreur si le visiteur n\'existe pas', async () => {
+      // ARRANGE
+      (Visiteur.findById as jest.Mock).mockResolvedValue(null);
+
+      // ACT / ASSERT
+      await expect(
+        service.getVisiteurById(VISITEUR_ID)
+      ).rejects.toThrow(`Visiteur avec l'ID ${VISITEUR_ID} introuvable`);
+    });
+  });
 });
